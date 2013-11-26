@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+
+{% load staticfiles %}
+{% load prisoners_extras %}
+<head>
+<link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.5/leaflet.css" />
+
+<script src="http://cdn.leafletjs.com/leaflet-0.5/leaflet.js"></script>
+<script src="http://maps.stamen.com/js/tile.stamen.js?v1.2.2"></script>
+
+
+<script src="{% static "js/jquery-1.10.2.min.js" %}"></script>
+</head>
+
+
+<body>
+<div id="map"></div>
+</body>
+<script>
+function setMapHeight(){
+    var windowHeight = window.innerHeight;
+    $( "#map" ).css( "height", (windowHeight-60) + "px" );
+
+}
+setMapHeight();
+window.addEventListener("resize",setMapHeight,false);
+
+
+</script>
+
+<script>
+
+
+var layer = new L.StamenTileLayer("toner");
+var map = new L.Map("map", {
+    center: new L.LatLng(40.1, -88.25),
+    zoom: 11
+});
+map.addLayer(layer);
+
+var addresses;
+var addressjson = '{% api_list 'address' %}&limit=300'
+function loadStations() {
+var stationJSON = $.getJSON(addressjson, function(data) {
+	addresses = L.geoJson(data.objects, {
+    	pointToLayer: function (feature, latlng) {
+        	return L.circleMarker(latlng);
+       	}
+       	
+    }).addTo(map);
+});
+}
+loadStations();
+
+/*ar stations = L.geoJson( fakeObject, {
+     pointToLayer: function (feature, latlng) {
+         return L.circleMarker(latlng, stylestations(feature, 'count'));
+     }, onEachFeature: onEachFeature }).addTo(map);
+ 
+ 
+  $.getJSON(bpstationjson, function(data){
+     stations.addData(data.objects);
+   })
+*/
+
+</script>
+
+
+</html>
