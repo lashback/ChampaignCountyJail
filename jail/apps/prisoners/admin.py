@@ -20,8 +20,6 @@ class RaceAdmin(admin.ModelAdmin):
 class ChargeAdmin(admin.ModelAdmin):
 	list_display = ['description', 'statute', 'crime_class']
 
-
-
 admin.site.register(Charge, ChargeAdmin)
 admin.site.register(Address, AddressAdmin)
 admin.site.register(BookingCharge, BookingChargeAdmin)

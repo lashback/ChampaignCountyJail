@@ -8,10 +8,11 @@ from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 
 from tastypie.api import Api
 from apps.prisoners.api import AddressResource
+from apps.prisoners.api import BlockResource
 
 v1_api = Api(api_name='v1')
 v1_api.register(AddressResource())
-
+v1_api.register(BlockResource())
 
 admin.autodiscover()
 

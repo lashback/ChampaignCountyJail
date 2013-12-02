@@ -142,9 +142,15 @@ class Command(BaseCommand):
         now = datetime.now()
      #   print now
         
-        
+                
+        housing_facility_import, housing_facility_created = HousingFacility.objects.get_or_create(
+            name = facility
+            )
 
-
+        blockmodel_import, blockmodel_created = Block.objects.get_or_create(
+            name = block,
+            housing_facility = housing_facility_import
+            )
         try: 
             booking, booking_created = Booking.objects.get_or_create(
             
@@ -188,6 +194,7 @@ class Command(BaseCommand):
         booking.total_bond = bond
         booking.gender= sex
         booking.block = block
+        booking.blockmodel = blockmodel_import
         booking.save()
       #  print booking.total_bond
         soup = BeautifulSoup(strip_spaces)

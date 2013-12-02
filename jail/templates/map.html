@@ -40,17 +40,45 @@ var map = new L.Map("map", {
 map.addLayer(layer);
 
 var addresses;
-var addressjson = '{% api_list 'address' %}&limit=300'
+var addressjson = '{% api_list 'address' %}&limit=500'
 function loadStations() {
 var stationJSON = $.getJSON(addressjson, function(data) {
 	addresses = L.geoJson(data.objects, {
     	pointToLayer: function (feature, latlng) {
-        	return L.circleMarker(latlng);
+        	return L.circleMarker(latlng, styleaddresses(feature));
        	}
        	
     }).addTo(map);
 });
 }
+
+function styleaddresses(feature){
+
+		return{
+	    radius: 15,
+	    fillColor: getCircleColor(feature),
+	    color: "#000",
+	    weight: .5,
+	    opacity: 1,
+	    fillOpacity: 0.7
+	    
+	};
+
+}
+
+function getCircleColor(feature){
+	if (feature.properties.race == 'W'){
+		return '#f00'
+	}
+	if (feature.properties.race == 'B'){
+		return '#0f0'
+	}
+	else {
+		return '#00f'
+	}
+
+}
+
 loadStations();
 
 /*ar stations = L.geoJson( fakeObject, {

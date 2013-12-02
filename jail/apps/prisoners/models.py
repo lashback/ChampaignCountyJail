@@ -2,6 +2,7 @@
 from django.contrib.gis.db import models
 from django.contrib.gis.geos import GEOSGeometry
 from omgeo import Geocoder
+from numpy import median, mean
 
 # Create your models here.
 class Charge(models.Model):
@@ -26,6 +27,8 @@ class Charge(models.Model):
 
 class Race(models.Model):
  	name = models.CharField(max_length=50)
+
+ 	#def build_bonds()
  	def __unicode__(self):
  		return self.name
  		
@@ -45,7 +48,10 @@ class Address(models.Model):
 	point_location = models.PointField('GeoDjango point field of this address', null=True, geography=True)
 
 	#def geocode(self):
-
+	def get_race(self):
+		inmates = self.inmate_set.all()
+		inmate = inmates[0]
+		return inmate.race.name
 
 	def __unicode__(self):
 		return self.string
@@ -65,8 +71,28 @@ class Inmate(models.Model):
 
 #### Many to many address field - then get last known address based on scrape####
 #### 
+class HousingFacility(models.Model):
+	name = models.CharField(max_length = 10)
+	def __unicode__(self):
+		return self.name
 
 
+class Block(models.Model):
+	name = models.CharField(max_length = 10)
+	housing_facility = models.ForeignKey(HousingFacility, null = True)
+	
+	def build_races(self):
+		
+		
+		counts = []
+		for r in Race.objects.all():
+			
+			count = self.booking_set.filter(identity__race = r).count()
+			
+			counts.append({r.name : count })
+		return counts
+	def __unicode__(self):
+		return self.name
 
 class Booking(models.Model):
 	time_created = models.DateTimeField(null = True)
@@ -81,8 +107,18 @@ class Booking(models.Model):
 	age = models.IntegerField(null=True, blank=True)
 	total_bond = models.FloatField(null = True,blank = True)
 	block = models.CharField(max_length = 10, null = True)
+	blockmodel = models.ForeignKey(Block, null= True)
 
-	
+	def build_block(self):
+		housing_facility_import, hf_created = HousingFacility.objects.get_or_create(
+			name = self.housing_facility
+			)
+		block_import, block_created = Block.objects.get_or_create(
+			name = self.block,
+			housing_facility = housing_facility_import
+		)
+		self.blockmodel = block_import
+		self.save()
 
 	#for csv export -- sorry, everyone. I feel shame for doing this.
 	#drop these when you're done, Nathaniel.

@@ -22,5 +22,25 @@ class AddressResource(ModelResource):
 		bundle.data['type'] = 'Feature'
 		#bundle.data['properties'] = {}
 		bundle.data['geometry'] = json.loads(bundle.obj.point_location.geojson)
+		bundle.data['properties'] = {
+			'race': bundle.obj.get_race()
+		}	
 
+		return bundle
+
+class BlockResource(ModelResource):
+	class Meta:
+		queryset = Block.objects.all()
+		resource_name = 'block'
+		allowed_methods = ['get']
+		max_limit = None
+		filtering = {
+			'type': ALL
+		}
+
+	def dehydrate(self,bundle):
+		bundle.data['properties'] = {
+			'races': bundle.obj.build_races()
+
+		}
 		return bundle
