@@ -7,18 +7,21 @@ class InmateAdmin(admin.ModelAdmin):
 	list_display = ['name','jacket_number']
 
 class BookingAdmin(admin.ModelAdmin):
-	list_display = ['identity', 'booking_date', 'total_bond', 'rough_release_date', 'last_seen']
+	list_display = ['identity', 'booking_date', 'total_bond', 'rough_release_date', 'last_seen', 'address', 'booking_length']
 	list_filter = ['time_created', 'housing_facility', 'block']
+	def address(self, obj):
+		return obj.identity.address.string
 
 class AddressAdmin(admin.OSMGeoAdmin):
 	list_display = ['string', 'verified', 'attempted', 'point_location']
 	pass
 
 class RaceAdmin(admin.ModelAdmin):
-	pass
+	list_display = ['name', 'count','average_bond', 'median_bond', 'total_days']
+
 
 class ChargeAdmin(admin.ModelAdmin):
-	list_display = ['description', 'statute', 'crime_class']
+	list_display = ['description', 'statute', 'crime_class', 'count','average_bond']
 
 admin.site.register(Charge, ChargeAdmin)
 admin.site.register(Address, AddressAdmin)

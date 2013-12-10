@@ -3,30 +3,108 @@ from django.contrib.gis.db import models
 from django.contrib.gis.geos import GEOSGeometry
 from omgeo import Geocoder
 from numpy import median, mean
+from django.core.exceptions import ObjectDoesNotExist
+import datetime
 
 # Create your models here.
 class Charge(models.Model):
 	description = models.CharField(max_length=255)
 	statute = models.CharField(max_length = 255, blank = True, null = True)
+	count = models.IntegerField(default = 0)
+	average_bond = models.FloatField(default = 0)
+	white_average_bond = models.FloatField(default = 0)
+	black_average_bond = models.FloatField(default = 0)
+
 	CLASS_CHOICES = (
 		('Federal', 'Federal'),
 		('State', 'State'),
 		('City', 'City')
 		)
+	is_felony = models.BooleanField(default = False)
 	crime_class = models.CharField(max_length = 255, null = True, blank = True, choices = CLASS_CHOICES)
 
 	def __unicode__(self):
 		return self.description
 
-	def get_counts(self):
-		counts = []
-		races = Race.objects.all()
+	def get_average_bond(self):
+		charges = self.bookingcharge_set.all()
 
-		for r in races:
-			counts[r.name] = []
+		bonds = []
+
+		for c in charges:
+			bonds.append(c.booking.total_bond)
+
+		print bonds
+
+		return mean(bonds)
+
+	def get_counts(self):
+		return self.bookingcharge_set.all().count()
+
+		#counts = []
+		#races = Race.objects.all()
+
+		#for r in races:
+		#	counts[r.name] = []
+
+	def build_stats(self):
+		self.count = self.get_counts()
+		self.average_bond = self.get_average_bond()
+		self.save()
+
+	def save(self, *args, **kwargs):
+		super(Charge, self).save(*args, **kwargs)
 
 class Race(models.Model):
  	name = models.CharField(max_length=50)
+ 	count = models.IntegerField(default = 0)
+	average_bond = models.FloatField(default = 0)
+	median_bond = models.FloatField(default = 0)
+	total_days = models.IntegerField(default = 0)
+
+	def get_days(self):
+		days = 0
+		inmates = self.inmate_set.all()
+		for i in inmates:
+			for b in i.booking_set.all():
+				days += b.booking_length
+		print days
+		return days
+
+
+	def get_average_bond(self):
+		charges = self.bookingcharge_set.all()
+		bonds = []
+		for c in charges:
+			bonds.append(c.booking.total_bond)
+		print bonds
+		return mean(bonds)
+
+	def get_median_bond(self):
+		charges = self.bookingcharge_set.all()
+		bonds = []
+		for c in charges:
+			bonds.append(c.booking.total_bond)
+		print bonds
+		return median(bonds)
+
+	def get_counts(self):
+		return self.bookingcharge_set.all().count()
+		#counts = []
+		#races = Race.objects.all()
+
+		#for r in races:
+		#	counts[r.name] = []
+
+	def build_stats(self):
+		#self.count = self.get_counts()
+		#self.average_bond = self.get_average_bond()
+		self.total_days = self.get_days()
+		self.median_bond = self.get_median_bond()
+		self.save()
+	def save(self, *args, **kwargs):
+		super(Race, self).save(*args, **kwargs)
+
 
  	#def build_bonds()
  	def __unicode__(self):
@@ -52,6 +130,51 @@ class Address(models.Model):
 		inmates = self.inmate_set.all()
 		inmate = inmates[0]
 		return inmate.race.name
+
+	def get_name(self):
+		inmates = self.inmate_set.all()
+		inmate = inmates[0]
+		return inmate.name.title()
+
+	def get_bond(self):
+		inmates = self.inmate_set.all()
+		inmate = inmates[0]
+		booking_thing = inmate.booking_set.all()[:1].get()
+
+		return booking_thing.total_bond
+
+	def get_booking_date(self):
+		inmates = self.inmate_set.all()
+		inmate = inmates[0]
+		booking_thing = inmate.booking_set.all()[:1].get()
+		return booking_thing.booking_date
+
+	def get_bond(self):
+		inmates = self.inmate_set.all()
+		inmate = inmates[0]
+		booking_thing = inmate.booking_set.all()[:1].get()
+
+		return booking_thing.total_bond
+		
+
+	def get_charges(self):
+		inmate = self.inmate_set.all()[:1].get()
+		booking_thing = inmate.booking_set.all()[:1].get()
+		
+		charges = ''
+		print booking_thing
+
+		try:
+			for c in booking_thing.bookingcharge_set.all():
+			#charge_thing = booking_thing.bookingcharge_set.all()[:1].get()
+#			return charge_thing.charge.description.title()
+				charges += c.charge.description.title()
+				if len(booking_thing.bookingcharge_set.all()) > 1:
+					charges += ', '
+			return charges			
+
+		except ObjectDoesNotExist:
+			return "No charge listed"
 
 	def __unicode__(self):
 		return self.string
@@ -127,23 +250,26 @@ class Booking(models.Model):
 	#name = models.CharField(null = True, blank = True, max_length = 255)
 	#charges_list = models.TextField(null = True, blank = True)
 	
+	def get_release_date(self):
+		#self.rough_release_date = None
+		#self.save()
+		now = datetime.datetime.now()
+		d = now - self.last_seen
+		print d.days
+		if d.days > 0:
 
+			self.rough_release_date = self.last_seen
+			print self.rough_release_date
+		
+			self.save()
 	def get_booking_length(self):
 		print self.identity.name
-		if self.release_date:
-			time = self.release_date - self.booking_date
-			return time.days
-		else:
-			return None
-
+		time = self.last_seen.date() - self.booking_date
+		return time.days
+		
 	def save_things(self):
-		bookings = self.bookingcharge_set.all()
-		arbritrarily_first_booking = bookings[0]
-		self.name = self.identity.name
-		if arbritrarily_first_booking.race:
-			self.race = arbritrarily_first_booking.race.name
-			print self.race
-		print self.names
+		#self.get_release_date()
+		self.booking_length = self.get_booking_length()
 		self.save()
 
 	def save(self, *args, **kwargs):
@@ -198,8 +324,7 @@ class BookingCharge(models.Model):
 #	zip_code = models.IntegerField(blank = True, null = True)
 
 	def __unicode__(self):
-		return self.identity
+		return self.charge.description
 	def save(self, *args, **kwargs):
 		super(BookingCharge, self).save(*args, **kwargs)
 
-	

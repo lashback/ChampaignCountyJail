@@ -16,7 +16,22 @@
 
 <body>
 <div id="map"></div>
+<form>
+<h3>Color by...</h3>
+
+<input type = "radio" checked="checked" name = "color" value = 'race'/>Race<br>
+<input type = "radio" name = "color" value = 'bond'/>Bond<br>
+</form>
 </body>
+
+
+
+
+
+
+
+
+
 <script>
 function setMapHeight(){
     var windowHeight = window.innerHeight;
@@ -30,8 +45,8 @@ window.addEventListener("resize",setMapHeight,false);
 </script>
 
 <script>
-
-
+var color = $('input[name=color]:checked').val();
+console.log(color)
 var layer = new L.StamenTileLayer("toner");
 var map = new L.Map("map", {
     center: new L.LatLng(40.1, -88.25),
@@ -45,18 +60,56 @@ function loadStations() {
 var stationJSON = $.getJSON(addressjson, function(data) {
 	addresses = L.geoJson(data.objects, {
     	pointToLayer: function (feature, latlng) {
-        	return L.circleMarker(latlng, styleaddresses(feature));
+        	return L.circleMarker(latlng, styleaddresses(feature, color));
+       	},
+       	onEachFeature: function (feature, layer) {
+       		drawAddress(feature, layer);
        	}
        	
     }).addTo(map);
 });
 }
+/*
+function getRadius(property){
+	var maxRadius = 80;
+	var propertypercent = property/10000000;
+	if (property == 0) {
+		return 1;		
+	}
+	else {
+	maxarea = Math.PI * Math.pow(maxRadius, 2);
 
-function styleaddresses(feature){
+	newradius = Math.sqrt(propertypercent * maxarea/Math.PI);
+		return newradius;
+	}
+}
+*/
+function drawAddress(feature, layer) {
+	var strPop = '';
+	var info = String(
+		"<strong>Name: </strong>"+feature.properties.name + "<br><strong>Race: </strong>" + feature.properties.race + "<br><strong>Charge: </strong>" + feature.properties.charge + "<br><strong>Bond: </strong>$" + feature.properties.bond.formatMoney(2, '.', ',') + "<br><strong>Booking date: </strong>" + feature.properties.booking_date + '<br><strong>Address: </strong>' + feature.string
+		)
+	strPop += info;
+	layer.bindPopup(strPop)
+
+}
+
+Number.prototype.formatMoney = function(c, d, t){
+var n = this, 
+    c = isNaN(c = Math.abs(c)) ? 2 : c, 
+    d = d == undefined ? "." : d, 
+    t = t == undefined ? "," : t, 
+    s = n < 0 ? "-" : "", 
+    i = parseInt(n = Math.abs(+n || 0).toFixed(c)) + "", 
+    j = (j = i.length) > 3 ? j % 3 : 0;
+   return s + (j ? i.substr(0, j) + t : "") + i.substr(j).replace(/(\d{3})(?=\d)/g, "$1" + t) + (c ? d + Math.abs(n - i).toFixed(c).slice(2) : "");
+ };
+
+function styleaddresses(feature, color){
 
 		return{
 	    radius: 15,
-	    fillColor: getCircleColor(feature),
+	    fillColor: getCircleColor(feature, color),
 	    color: "#000",
 	    weight: .5,
 	    opacity: 1,
@@ -66,18 +119,49 @@ function styleaddresses(feature){
 
 }
 
-function getCircleColor(feature){
+
+function getCircleColor(feature, color){
+	if (color == 'race'){
 	if (feature.properties.race == 'W'){
-		return '#f00'
+		return '#66C2A5'
 	}
 	if (feature.properties.race == 'B'){
-		return '#0f0'
+		return '#FC8D62'
+	}
+	if (feature.properties.race == 'WH'){
+		return '#8DA0CB'
 	}
 	else {
-		return '#00f'
+		return '#E78AC3'
 	}
 
+	}
+	if (color == 'bond'){
+		d = feature.properties.bond
+		return	d > 100000  ? '#F46D43' :
+				d > 20000  ? '#FDAE61' :
+				d > 10000  ? '#FEE090' :
+				d > 5000  ? '#FFFFBF' :
+				d > 2500   ? '#E0F3F8' :
+				d > 1000   ? '#ABD9E9' :
+				d > 1   ? '#74ADD1' :
+				          '#4575B4';
+	}
+	else {
+		return '#333'
+	}
 }
+function updateMap(color) {
+	activecolor = color;
+
+	$.each(addresses._layers, function(key, value) {
+		value.setStyle(styleaddresses(value.feature, activecolor));
+	});
+
+}
+
+$('input[name=color]:radio').change( function () { color = $('input[name=color]:checked').val(); 
+		updateMap(color); });
 
 loadStations();
 
@@ -93,6 +177,7 @@ loadStations();
 */
 
 </script>
+
 
 
 </html>

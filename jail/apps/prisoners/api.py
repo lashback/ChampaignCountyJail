@@ -23,7 +23,11 @@ class AddressResource(ModelResource):
 		#bundle.data['properties'] = {}
 		bundle.data['geometry'] = json.loads(bundle.obj.point_location.geojson)
 		bundle.data['properties'] = {
-			'race': bundle.obj.get_race()
+			'race': bundle.obj.get_race(),
+			'name': bundle.obj.get_name(),
+			'charge':bundle.obj.get_charges(),
+			'bond': bundle.obj.get_bond(),
+			'booking_date': bundle.obj.get_booking_date()
 		}	
 
 		return bundle
