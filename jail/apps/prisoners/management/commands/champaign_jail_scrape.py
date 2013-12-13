@@ -162,7 +162,7 @@ class Command(BaseCommand):
                 booking_date = booking_date,
                 booking_time = booking_time,
                 housing_facility = facility,
-                age = age
+                
                 )
             except ValidationError:
                 booking, booking_created = Booking.objects.get_or_create(
@@ -199,6 +199,7 @@ class Command(BaseCommand):
             booking.total_bond = bond
             booking.gender= sex
             booking.block = block
+            booking.age = age
             booking.blockmodel = blockmodel_import
             booking.save()
           #  print booking.total_bond

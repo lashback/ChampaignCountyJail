@@ -21,7 +21,7 @@ class RaceAdmin(admin.ModelAdmin):
 
 
 class ChargeAdmin(admin.ModelAdmin):
-	list_display = ['description', 'statute', 'crime_class', 'count','average_bond']
+	list_display = ['description', 'statute' ,'crime_class', 'count','average_bond', 'white_average_bond', 'black_average_bond', 'black_count']
 
 admin.site.register(Charge, ChargeAdmin)
 admin.site.register(Address, AddressAdmin)

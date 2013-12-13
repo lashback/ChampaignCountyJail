@@ -12,6 +12,7 @@ class Charge(models.Model):
 	statute = models.CharField(max_length = 255, blank = True, null = True)
 	count = models.IntegerField(default = 0)
 	average_bond = models.FloatField(default = 0)
+	black_count = models.FloatField(default = 0)
 	white_average_bond = models.FloatField(default = 0)
 	black_average_bond = models.FloatField(default = 0)
 
@@ -45,12 +46,38 @@ class Charge(models.Model):
 		#races = Race.objects.all()
 
 		#for r in races:
+	
 		#	counts[r.name] = []
+
+
+	def get_black_percent(self):
+		blacks = self.bookingcharge_set.filter(identity__race__name = 'B')
+		b = len(blacks)
+		alls = self.bookingcharge_set.all()
+		a = len(alls)
+		return float(b) / a
+
+	def get_race_average(self, race):
+		charges = self.bookingcharge_set.filter(identity__race__name = race)
+		bonds = []
+		for c in charges:
+			bonds.append(c.booking.total_bond)
+		print bonds
+		return mean(bonds)
+
+
 
 	def build_stats(self):
 		self.count = self.get_counts()
 		self.average_bond = self.get_average_bond()
+		self.black_count = self.get_black_percent()
+		black = 'B'
+		white = 'W'
+		self.black_average_bond = self.get_race_average(black)
+		self.white_average_bond = self.get_race_average(white)
 		self.save()
+
+
 
 	def save(self, *args, **kwargs):
 		super(Charge, self).save(*args, **kwargs)
@@ -140,7 +167,6 @@ class Address(models.Model):
 		inmates = self.inmate_set.all()
 		inmate = inmates[0]
 		booking_thing = inmate.booking_set.all()[:1].get()
-
 		return booking_thing.total_bond
 
 	def get_booking_date(self):
