@@ -212,12 +212,14 @@ class Command(BaseCommand):
                     print len(details)
                     action = details[1].string.strip()
                     date = details[2].string.strip()
-                    date_pieces = date.split('/')
-                    print date_pieces
-                    date_fixed = date_pieces[2]+"-"+date_pieces[0]+"-"+date_pieces[1]
-                    time = details[3].string.strip()
+                    if len(date) > 0: 
+                    	date_pieces = date.split('/')
+                    	print date_pieces
+                    	date_fixed = date_pieces[2]+"-"+date_pieces[0]+"-"+date_pieces[1]
+                    	time = details[3].string.strip()
+                    	datetime_string = date_fixed+" "+time
                     release = details[4].string.strip()
-                    datetime_string = date_fixed+" "+time
+                    	
                     
                     if len(charge_string) > 0:
                         try:
@@ -243,7 +245,7 @@ class Command(BaseCommand):
                         )
 						#except:
 						#	print "Something bad occurred"
-                        booking_charge.system_point.add(system_point_import)
+                        booking_charge.system_points.add(system_point_import)
                         booking_charge.save()
                     if len(release)>0:
                         booking_charge.release_date = release
