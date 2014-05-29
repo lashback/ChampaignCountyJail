@@ -181,7 +181,6 @@ class Address(models.Model):
 		booking_thing = inmate.booking_set.all()[:1].get()
 
 		return booking_thing.total_bond
-		
 
 	def get_charges(self):
 		inmate = self.inmate_set.all()[:1].get()
@@ -215,8 +214,9 @@ class Inmate(models.Model):
 	gender = models.CharField(max_length = 6, null = True)
 	address = models.ForeignKey(Address, blank = True, null= True)
 	def __unicode__(self):
-		return self.name
+		return self.last_name
 	#def get_race(self):
+
 
 #### Many to many address field - then get last known address based on scrape####
 #### 
@@ -257,6 +257,7 @@ class Booking(models.Model):
 	total_bond = models.FloatField(null = True,blank = True)
 	block = models.CharField(max_length = 10, null = True)
 	blockmodel = models.ForeignKey(Block, null= True)
+
 
 	def build_block(self):
 		housing_facility_import, hf_created = HousingFacility.objects.get_or_create(
@@ -322,12 +323,22 @@ class Booking(models.Model):
 	def __unicode__(self):
 		return self.identity.name
 	
+#just a description for statuses (hearing, bond court, etc) for easy(er) filtering
+class Action(models.Model):
+	description = models.CharField(max_length = 100)
+
+#point in the criminal justice system
+class SystemPoint(models.Model):
+	action = models.ForeignKey(Action)
+	court_datetime = models.DateTimeField()
 
 class BookingCharge(models.Model):
 	identity = models.ForeignKey(Inmate)
 	booking = models.ForeignKey(Booking, null = True)
 	charge = models.ForeignKey(Charge)
 	race = models.ForeignKey(Race)
+	system_points = models.ManyToManyField(SystemPoint)
+	release_date = models.DateField(null=True)
 	#GENDER_CHOICES = (
 #		('m', "male")
 #		('f', "female")

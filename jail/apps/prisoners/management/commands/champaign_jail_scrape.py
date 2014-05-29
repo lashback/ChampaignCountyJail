@@ -176,10 +176,7 @@ class Command(BaseCommand):
             if booking:
                 ###THIS IS SO WRONG I'M EMBARASSED THAT I WROTE IT.
                 ### we need a separate command that iterates through the people not yet released, and then release them 
-
-                ###which allllso means that we need to have an . Accidentally releasing or incarcerating someone is going to end very badly for you.
-                
-
+                ###which allllso means that we need to have an . Accidentally releasing or incarcerating someone is going to end very badly for you.                
     #            if not booking_created:
      #               booking.release_date = datetime.today()
       #              booking.save()
@@ -210,10 +207,18 @@ class Command(BaseCommand):
                 details = row.findAll('td')
                 print details
                 if details:
-                    
                     charge_string = details[0].string
                     charge_string = charge_string.strip()
-
+                    print len(details)
+                    action = details[1].string.strip()
+                    date = details[2].string.strip()
+                    date_pieces = date.split('/')
+                    print date_pieces
+                    date_fixed = date_pieces[2]+"-"+date_pieces[0]+"-"+date_pieces[1]
+                    time = details[3].string.strip()
+                    release = details[4].string.strip()
+                    datetime_string = date_fixed+" "+time
+                    
                     if len(charge_string) > 0:
                         try:
                             charge, charge_created = Charge.objects.get_or_create(
@@ -227,6 +232,25 @@ class Command(BaseCommand):
                             charge = charge,
                             race = race_object
                             )
+                    if len(action) > 0:
+                        action_import, action_created = Action.objects.get_or_create(
+							description = action
+                        )
+						#try:
+                        system_point_import = SystemPoint.objects.create(
+							action = action_import,
+							court_datetime = datetime_string
+                        )
+						#except:
+						#	print "Something bad occurred"
+                        booking_charge.system_point.add(system_point_import)
+                        booking_charge.save()
+                    if len(release)>0:
+                        booking_charge.release_date = release
+
+
+
+
 
 
 
