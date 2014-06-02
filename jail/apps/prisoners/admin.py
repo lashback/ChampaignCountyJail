@@ -7,8 +7,10 @@ class InmateAdmin(admin.ModelAdmin):
 	list_display = ['name','jacket_number']
 
 class BookingAdmin(admin.ModelAdmin):
-	list_display = ['identity', 'booking_date', 'total_bond', 'rough_release_date', 'last_seen', 'address', 'booking_length']
+	list_display = ['identity', "last_name", 'booking_date', 'total_bond', 'rough_release_date', 'last_seen', 'address', 'booking_length']
 	list_filter = ['time_created', 'housing_facility', 'block']
+	def last_name(self, obj):
+		return obj.identity.name
 	def address(self, obj):
 		return obj.identity.address.string
 

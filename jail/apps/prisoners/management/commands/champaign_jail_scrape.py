@@ -70,6 +70,17 @@ class Command(BaseCommand):
             # Get links from last column of each row
 
     def create_booking(self, first_name, middle_name, last_name, age, race, sex, link):
+        def date_fixer(date_string):
+            date_pieces = date_string.split('/')
+            
+            print date_pieces
+            if len(date_pieces[0])<2:
+            #add a 0 in front of month if there's only one. 
+               date_pieces[0] = "0" + date_pieces[0]
+            cleaned = date_pieces[2]+"-"+date_pieces[0]+"-"+date_pieces[1]
+            return cleaned
+
+
         #there's a glitch inmate who's been in their system since 2003, and it's fuckign everything up.
         if str(first_name + ' ' + middle_name + ' ' + last_name) == 'TODD EVERETT WALKER':
             pass
@@ -77,9 +88,6 @@ class Command(BaseCommand):
             race_object, race_created = Race.objects.get_or_create(
                 name = race
                 )
-
-
-            
             full_link = str(BASE_DOMAIN+link)
             result = requests.get(full_link)
             print 'we got results'
@@ -213,14 +221,12 @@ class Command(BaseCommand):
                     action = details[1].string.strip()
                     date = details[2].string.strip()
                     if len(date) > 0: 
-                    	date_pieces = date.split('/')
-                    	print date_pieces
-                    	date_fixed = date_pieces[2]+"-"+date_pieces[0]+"-"+date_pieces[1]
+                    	date_fixed = date_fixer(date)
                     	time = details[3].string.strip()
                     	datetime_string = date_fixed+" "+time
-                    release = details[4].string.strip()
-                    	
                     
+
+                               
                     if len(charge_string) > 0:
                         try:
                             charge, charge_created = Charge.objects.get_or_create(
@@ -238,7 +244,7 @@ class Command(BaseCommand):
                         action_import, action_created = Action.objects.get_or_create(
 							description = action
                         )
-						#try:
+						#this might cause duplications. 
                         system_point_import = SystemPoint.objects.create(
 							action = action_import,
 							court_datetime = datetime_string
@@ -247,13 +253,9 @@ class Command(BaseCommand):
 						#	print "Something bad occurred"
                         booking_charge.system_points.add(system_point_import)
                         booking_charge.save()
-                    if len(release)>0:
-                        booking_charge.release_date = release
-
-
-
-
-
+                    if len(details[4].string.strip())>0:
+                        booking_charge.release_date = date_fixer(details[4].string.strip())
+                        booking_charge.save()
 
 
     #        for br in soup.findAll('br'):
