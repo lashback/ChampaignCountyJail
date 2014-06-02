@@ -29,32 +29,51 @@ A lot of the things you'll need will be detailed [here](https://github.com/overv
 
 ####Installation
 Clone the git repo here:
+
 `git clone git://github.com/lashback/ChampaignCountyJail`
+
 Create your python virtual env:
+
 `mkvirtualenv jail`
+
 Install the requirements: 
+
 `pip install -r requirements.txt`
+
 Navigate into the next directory:
+
 `cd jail`
 
 ####Set up the database
 First create the database. 
+
 `createdb -T template_postgis jail`
+
 Then sync and migrate:
+
 `python manage.py syncdb
+
 python manage.py schemamigration prisoners --intial
+
 python manage.py migrate`
+
 You might have to fiddle with the database connection settings to make everything Cool and Froody. 
 
 ####Cron job
 The system is designed to execute a command every two hours, but you can adjust that. Check the [cron job docs](https://help.ubuntu.com/community/CronHowto) for more information about setting the frequency.
 Make sure scrapeit.sh looks like this: (This is under dev to execute within python virtualenv)
+
 '#!/bin/bash
 python manage.py champaign_jail_scrape
 echo "Worked: $(date)" >> /home/nlash/Documents/jail/app/jail/jail/scrape.log'
+
 Now, open up your Crontab:
+
 `crontab -e`
+
 And have that script run according to the docs above. Here's every two hours:
-`0 */2 * * * /home/nlash/Documents/jail/app/jail/jail/scrapeit.sh >> /home/nlash/Documents/jail/app/jail/jail/scrape.log`
+
+`0 */2 * * * /home/nlash/Documents/jail/app/jail/jail/scrapeit.sh >> /home/nlash/Documents/jail/
+app/jail/jail/scrape.log`
 
 You should be good to go! Whoopee!
